@@ -5,16 +5,12 @@ var terrain_brush
 var terrain_list
 var terrain_buttons
 var biome_dropdown
-# HACK: Reference to Master node, needed because 
-# it is not exposed in the modding api directly
-var Master: Node
 
 # Script constants
 # TODO: Add support for multiple biome presets in the future
 const BIOMES_PATH: String = "user://preset1.dungeondraft_biomes"
 
 func init_globals():
-    Master = Global.Editor.get_parent()
     terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
     # TODO: Replace magic numbers in get_child with proper node ids
     terrain_list = terrain_brush.Align.get_child(7).get_child(0)
@@ -41,8 +37,8 @@ func start():
         terrain_buttons[i].connect("pressed", self, "popup_terrain_window", [i])
 
     # HACK: Disconnecting undefined method from 'about_to_show' signal
-    Master.Editor.TerrainWindow.disconnect("about_to_show", Master.Editor.TerrainWindow, "_on_TerrainWindow_about_to_show")
-    Master.Editor.TerrainWindow.connect("popup_hide", self, "sync_biome")
+    Global.Editor.TerrainWindow.disconnect("about_to_show", Global.Editor.TerrainWindow, "_on_TerrainWindow_about_to_show")
+    Global.Editor.TerrainWindow.connect("popup_hide", self, "sync_biome")
 
     # Load biomes into biomes dictionary, then override
     # the default biomes terrain set with our own
@@ -82,7 +78,7 @@ func new_biome():
         "res://textures/terrain/terrain_dirt.png", 
         "res://textures/terrain/terrain_dirt.png"
     ]
-    
+
     update_biomes()
 
 func save_biomes(): 
@@ -154,7 +150,7 @@ func popup_terrain_window(index):
     ## method, which on hide does **not** emit the popup_hide signal.
     ## Thus this wrapper forces the window to 'Open' briefly, hides it
     ## immediately then popup immediately after
-    var terrain_window = Master.Editor.TerrainWindow
+    var terrain_window = Global.Editor.TerrainWindow
     terrain_window.Open(index)
     terrain_window.hide()
     terrain_window.popup()
