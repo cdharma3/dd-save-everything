@@ -22,7 +22,7 @@ func start():
     # Load biomes into biomes dictionary, then override
     # the default biomes terrain set with our own
     load_biomes()
-    
+
     # Add save button to terrain list
     var save_button = terrain_brush.CreateButton("Save", "res://ui/icons/menu/save.png")
     save_button.connect("pressed", self, "load_biomes")
@@ -37,33 +37,39 @@ func load_biomes():
     # Populate biomes
     var file = File.new()
     file.open(BIOMES_PATH, File.READ)
-    biomes = JSON.parse_string(file.get_as_text())
+    var line = file.get_as_text()
+    biomes = JSON.parse(line).result
     file.close()
 
-    if !biomes:
-        log_err("Failed to parse preset " + BIOMES_PATH)
+    if not biomes:
+        log_err("Failed to load preset " + BIOMES_PATH)
+        return -1
 
     # Override biome dropdown to link into script
+    log_info("Overriding biome dropdown menu...")
     biome_dropdown.clear()
     for biome in biomes.keys():
         biome_dropdown.add_item(biome)
     
-    print(biome_dropdown.get_signals_)
+    var conns = biome_dropdown.get_signal_connection_list("item_selected")
+    biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
     biome_dropdown.connect("item_selected", self, "set_biome")
 
 func set_biome(index):
+    log_info("Setting biome " + biomes.keys()[index])
     var terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
     var terrain_list = terrain_brush.Align.get_child(7).get_child(0)
 
-    var textures = biomes[index]
+    var textures = biomes[biomes.keys()[index]]
     for i in range(0, len(textures)):
         var texture = load_texture(textures[i])
-        Global.World.Level.Terrain.set_texture(i, texture)
+        Global.World.Level.Terrain.SetTexture(i, texture)
         terrain_list.set_item_icon(i, texture)
-        terrain_list.set_item_text(i, texture.get_display_name())
+        terrain_list.set_item_text(i, parse_resource_name(texture))
     
 
 func load_texture(texture_path):
+    log_info("Loading texture " + texture_path + "...")
     if ResourceLoader.exists(texture_path):
         return ResourceLoader.load(texture_path)
     
@@ -72,18 +78,13 @@ func load_texture(texture_path):
         log_err(texture_path + " not found!")
         return null
 
-    var image_texture = ImageTexture.create_from_image(image)
+    var image_texture = ImageTexture.new()
+    image_texture.create_from_image(image)
     image_texture.resource_path = texture_path
     return image_texture
 
-func save_biomes(terrain_brush):
-    # Load biomes from file, or create new biome file
-    #var biomes_file = File.new()
-    #biomes_file.open(BIOMES_PATH, File.WRITE_READ)
-    #biomes = 
-    print(Master.Library["Terrain"])
-    #terrain_brush.ResetBiome(Global.World.Level)
-    #Global.World.Level.Terrain.SetTexture(Global.World.Level.Terrain.GetTexture(1), 0)
+func parse_resource_name(resource) -> String:
+    return resource.resource_path.split("/")[-1].split(".")[0].capitalize()
 
 # Logging utilities
 func log_info(msg):
