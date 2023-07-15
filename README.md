@@ -2,7 +2,20 @@
 Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the ability to customize the biomes located in the Terrain Brush tool.
 
 ## Features
-TODO: Fill with features
+### Completed
+Customizable biomes
+
+### In-progress
+Add new biomes
+Remove biomes
+Renamable biomes
+Export to preset file
+Import preset file
+
+### Planned
+Multiple preset files
+8 terrain slot support
+
 
 ## Installation
 TODO: Installation instructions

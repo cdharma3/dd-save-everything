@@ -50,14 +50,18 @@ func start():
         log_err("Some sort of error when loading biomes!")
 
     # Setup terrain preset buttons
-    var save_button = terrain_brush.CreateButton("Save Biomes", "res://ui/icons/menu/save.png")
+    var new_button = terrain_brush.CreateButton("New Biome", Global.Root + "icons/add.png")
+    new_button.connect("pressed", self, "new_biome")
+    terrain_brush.Align.move_child(new_button, 6)
+
+    var save_button = terrain_brush.CreateButton("Save Biome", "res://ui/icons/menu/save.png")
     save_button.connect("pressed", self, "save_biomes")
     save_button.hint_tooltip = "WARNING: This will overwrite your current preset file"
-    terrain_brush.Align.move_child(save_button, 6)
+    terrain_brush.Align.move_child(save_button, 7)
 
-    var load_button = terrain_brush.CreateButton("Load Biomes", "res://ui/icons/menu/redo.png")
+    var load_button = terrain_brush.CreateButton("Load Biome", "res://ui/icons/menu/redo.png")
     load_button.connect("pressed", self, "load_biomes")
-    terrain_brush.Align.move_child(load_button, 7)
+    terrain_brush.Align.move_child(load_button, 8)
 
     
 # Utilities
@@ -69,11 +73,19 @@ func sync_biome():
     for i in range(0, terrain_list.get_item_count()):
         biomes[cur_biome][i] = Global.World.Level.Terrain.GetTexture(i).resource_path
     
+func new_biome():
+    ## Add a new biome to the biomes dictionary
+    # TODO: Add ability to customize new biome name
+    biomes["new_biome"] = ["", "", "", ""]
+    update_biomes()
 
 func save_biomes(): 
     # Save current biomes state to preset file
-    print(terrain_buttons.get_children()[0].get_signal_connection_list("pressed"))
-    pass
+    log_info("Saving file " + BIOMES_PATH + "...")
+    var file = File.new()
+    file.open(BIOMES_PATH, File.WRITE)
+    file.store_line(JSON.print(biomes, "\t"))
+    file.close()
 
 func load_biomes() -> int:
     log_info("Loading terrain presets...")
@@ -90,12 +102,15 @@ func load_biomes() -> int:
         return -1
 
     # Override biome dropdown to link into script
+    update_biomes()
+    return 0
+
+func update_biomes():
     log_info("Loading biomes...")
     biome_dropdown.clear()
     for biome in biomes.keys():
         biome_dropdown.add_item(biome)
     set_biome(0)
-    return 0
 
 func set_biome(index):
     log_info("Setting biome to " + biomes.keys()[index])
@@ -103,9 +118,10 @@ func set_biome(index):
     var textures = biomes[biomes.keys()[index]]
     for i in range(0, len(textures)):
         var texture = load_texture(textures[i])
-        Global.World.Level.Terrain.SetTexture(texture, i)
-        terrain_list.set_item_icon(i, texture)
-        terrain_list.set_item_text(i, parse_resource_name(texture))
+        if texture:
+            Global.World.Level.Terrain.SetTexture(texture, i)
+            terrain_list.set_item_icon(i, texture)
+            terrain_list.set_item_text(i, parse_resource_name(texture))
     
 
 func load_texture(texture_path):
