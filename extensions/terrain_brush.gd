@@ -76,7 +76,13 @@ func sync_biome():
 func new_biome():
     ## Add a new biome to the biomes dictionary
     # TODO: Add ability to customize new biome name
-    biomes["new_biome"] = ["", "", "", ""]
+    biomes["new_biome"] = [
+        "res://textures/terrain/terrain_dirt.png", 
+        "res://textures/terrain/terrain_dirt.png", 
+        "res://textures/terrain/terrain_dirt.png", 
+        "res://textures/terrain/terrain_dirt.png"
+    ]
+    
     update_biomes()
 
 func save_biomes(): 
