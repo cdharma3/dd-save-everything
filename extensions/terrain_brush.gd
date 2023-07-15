@@ -3,6 +3,7 @@ var script_class = "tool"
 # Globals
 var terrain_brush
 var terrain_list
+var terrain_buttons
 var biome_dropdown
 # HACK: Reference to Master node, needed because 
 # it is not exposed in the modding api directly
@@ -15,8 +16,11 @@ const BIOMES_PATH: String = "user://preset1.dungeondraft_biomes"
 func init_globals():
     Master = Global.Editor.get_parent()
     terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
-    terrain_list = terrain_brush.Align.get_node(7).get_child(0)
+    # TODO: Replace magic numbers in get_child with proper node ids
+    terrain_list = terrain_brush.Align.get_child(7).get_child(0)
+    terrain_buttons = terrain_brush.Align.get_child(7).get_child(1).get_children()
     biome_dropdown = terrain_brush.Align.get_child(6)
+
 
 # Biome dictionary
 var biomes: Dictionary
@@ -30,6 +34,15 @@ func start():
     var conns = biome_dropdown.get_signal_connection_list("item_selected")
     biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
     biome_dropdown.connect("item_selected", self, "set_biome")
+    
+    for i in range(0, len(terrain_buttons)):
+        conns = terrain_buttons[i].get_signal_connection_list("pressed")
+        terrain_buttons[i].disconnect("pressed", conns[0].target, conns[0].method)
+        terrain_buttons[i].connect("pressed", self, "popup_terrain_window", [i])
+
+    # HACK: Disconnecting undefined method from 'about_to_show' signal
+    Master.Editor.TerrainWindow.disconnect("about_to_show", Master.Editor.TerrainWindow, "_on_TerrainWindow_about_to_show")
+    Master.Editor.TerrainWindow.connect("popup_hide", self, "sync_biome")
 
     # Load biomes into biomes dictionary, then override
     # the default biomes terrain set with our own
@@ -48,10 +61,18 @@ func start():
 
     
 # Utilities
+func sync_biome():
+    ## Sync currently set biome with terrain list
+    var cur_biome = biomes.keys()[biome_dropdown.selected]
+    log_info("Updating biome " + cur_biome)
+    
+    for i in range(0, terrain_list.get_item_count()):
+        biomes[cur_biome][i] = Global.World.Level.Terrain.GetTexture(i).resource_path
+    
 
 func save_biomes(): 
-    # Save current biomes state to preset
-
+    # Save current biomes state to preset file
+    print(terrain_buttons.get_children()[0].get_signal_connection_list("pressed"))
     pass
 
 func load_biomes() -> int:
@@ -88,7 +109,7 @@ func set_biome(index):
     
 
 func load_texture(texture_path):
-    log_info("Loading texture " + texture_path + "...")
+    log_info("Loading texture " + texture_path)
     if ResourceLoader.exists(texture_path):
         return ResourceLoader.load(texture_path)
     
@@ -104,6 +125,17 @@ func load_texture(texture_path):
 
 func parse_resource_name(resource) -> String:
     return resource.resource_path.split("/")[-1].split(".")[0].capitalize()
+
+func popup_terrain_window(index):
+    ## HACK: Wrapper function around the open terrain window buttons
+    ## Currently it seems like the TerrainWindow is using the show
+    ## method, which on hide does **not** emit the popup_hide signal.
+    ## Thus this wrapper forces the window to 'Open' briefly, hides it
+    ## immediately then popup immediately after
+    var terrain_window = Master.Editor.TerrainWindow
+    terrain_window.Open(index)
+    terrain_window.hide()
+    terrain_window.popup()
 
 # Logging utilities
 func log_info(msg):
