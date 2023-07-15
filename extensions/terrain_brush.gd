@@ -21,14 +21,15 @@ func start():
 
     # Load biomes into biomes dictionary, then override
     # the default biomes terrain set with our own
-    load_biomes()
+    if load_biomes() != 0:
+        log_err("Some sort of error when loading biomes!")
 
     # Add save button to terrain list
     var save_button = terrain_brush.CreateButton("Save", "res://ui/icons/menu/save.png")
     save_button.connect("pressed", self, "load_biomes")
     
 # Utilities
-func load_biomes():
+func load_biomes() -> int:
     var terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
     var biome_dropdown = terrain_brush.Align.get_child(6)
 
@@ -54,6 +55,7 @@ func load_biomes():
     var conns = biome_dropdown.get_signal_connection_list("item_selected")
     biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
     biome_dropdown.connect("item_selected", self, "set_biome")
+    return 0
 
 func set_biome(index):
     log_info("Setting biome " + biomes.keys()[index])
@@ -63,7 +65,7 @@ func set_biome(index):
     var textures = biomes[biomes.keys()[index]]
     for i in range(0, len(textures)):
         var texture = load_texture(textures[i])
-        Global.World.Level.Terrain.SetTexture(i, texture)
+        Global.World.Level.Terrain.SetTexture(texture, i)
         terrain_list.set_item_icon(i, texture)
         terrain_list.set_item_text(i, parse_resource_name(texture))
     
