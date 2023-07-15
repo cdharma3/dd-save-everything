@@ -1,5 +1,9 @@
 var script_class = "tool"
 
+# Globals
+var terrain_brush
+var terrain_list
+var biome_dropdown
 # HACK: Reference to Master node, needed because 
 # it is not exposed in the modding api directly
 var Master: Node
@@ -8,31 +12,49 @@ var Master: Node
 # TODO: Add support for multiple biome presets in the future
 const BIOMES_PATH: String = "user://preset1.dungeondraft_biomes"
 
+func init_globals():
+    Master = Global.Editor.get_parent()
+    terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
+    terrain_list = terrain_brush.Align.get_node(7).get_child(0)
+    biome_dropdown = terrain_brush.Align.get_child(6)
+
 # Biome dictionary
 var biomes: Dictionary
 
 # Script entry point
 func start():
-    # Set Master
-    Master = Global.Editor.get_parent()
+    # Initialize global variables, must be called before any other functions!
+    init_globals()
 
-    # Init global variables
-    var terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
+    # Override signals
+    var conns = biome_dropdown.get_signal_connection_list("item_selected")
+    biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
+    biome_dropdown.connect("item_selected", self, "set_biome")
 
     # Load biomes into biomes dictionary, then override
     # the default biomes terrain set with our own
     if load_biomes() != 0:
         log_err("Some sort of error when loading biomes!")
 
-    # Add save button to terrain list
-    var save_button = terrain_brush.CreateButton("Save", "res://ui/icons/menu/save.png")
-    save_button.connect("pressed", self, "load_biomes")
+    # Setup terrain preset buttons
+    var save_button = terrain_brush.CreateButton("Save Biomes", "res://ui/icons/menu/save.png")
+    save_button.connect("pressed", self, "save_biomes")
+    save_button.hint_tooltip = "WARNING: This will overwrite your current preset file"
+    terrain_brush.Align.move_child(save_button, 6)
+
+    var load_button = terrain_brush.CreateButton("Load Biomes", "res://ui/icons/menu/redo.png")
+    load_button.connect("pressed", self, "load_biomes")
+    terrain_brush.Align.move_child(load_button, 7)
+
     
 # Utilities
-func load_biomes() -> int:
-    var terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
-    var biome_dropdown = terrain_brush.Align.get_child(6)
 
+func save_biomes(): 
+    # Save current biomes state to preset
+
+    pass
+
+func load_biomes() -> int:
     log_info("Loading terrain presets...")
 
     # Populate biomes
@@ -47,20 +69,15 @@ func load_biomes() -> int:
         return -1
 
     # Override biome dropdown to link into script
-    log_info("Overriding biome dropdown menu...")
+    log_info("Loading biomes...")
     biome_dropdown.clear()
     for biome in biomes.keys():
         biome_dropdown.add_item(biome)
-    
-    var conns = biome_dropdown.get_signal_connection_list("item_selected")
-    biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
-    biome_dropdown.connect("item_selected", self, "set_biome")
+    set_biome(0)
     return 0
 
 func set_biome(index):
-    log_info("Setting biome " + biomes.keys()[index])
-    var terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
-    var terrain_list = terrain_brush.Align.get_child(7).get_child(0)
+    log_info("Setting biome to " + biomes.keys()[index])
 
     var textures = biomes[biomes.keys()[index]]
     for i in range(0, len(textures)):
