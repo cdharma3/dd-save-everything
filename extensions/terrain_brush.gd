@@ -156,7 +156,7 @@ func load_biomes() -> int:
 
 func init_biomes():
     log_info("Initializing default biomes preset at " + BIOMES_PATH)
-    biomes = {"Default Biome": [
+    biomes = {"Default": [
             "res://textures/terrain/terrain_dirt.png", 
             "res://textures/terrain/terrain_dirt.png", 
             "res://textures/terrain/terrain_dirt.png", 
