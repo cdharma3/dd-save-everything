@@ -125,9 +125,6 @@ func del_biome():
     set_biome(0)    
 
 func save_biomes():
-    # Sync current biome first 
-    sync_biome()
-
     # Save current biomes state to preset file
     log_info("Saving file " + BIOMES_PATH + "...")
     var file = File.new()
@@ -140,19 +137,32 @@ func load_biomes() -> int:
 
     # Populate biomes
     var file = File.new()
-    file.open(BIOMES_PATH, File.READ)
+    if not file.file_exists(BIOMES_PATH):
+        init_biomes()
+    
+    file.open(BIOMES_PATH, File.WRITE_READ)
     var line = file.get_as_text()
     biomes = JSON.parse(line).result
-    file.close()
-
     if not biomes:
-        log_err("Failed to load preset " + BIOMES_PATH)
-        return -1
+        log_err("Failed to load preset " + BIOMES_PATH + ", file is either missing or corrupted")
+        init_biomes()
+
+    file.close()
 
     # Override biome dropdown to link into script
     update_biomes()
     set_biome(0)
     return 0
+
+func init_biomes():
+    log_info("Initializing default biomes preset at " + BIOMES_PATH)
+    biomes = {"Default Biome": [
+            "res://textures/terrain/terrain_dirt.png", 
+            "res://textures/terrain/terrain_dirt.png", 
+            "res://textures/terrain/terrain_dirt.png", 
+            "res://textures/terrain/terrain_dirt.png"
+        ]}
+    save_biomes()
 
 func update_biomes():
     log_info("Updating biomes...")

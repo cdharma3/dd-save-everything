@@ -18,7 +18,7 @@ Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the
 
 
 ## Installation
-TODO: Installation instructions
+Download this repository, click the mods button in Dungeondraft and point it at this repo.
 
 ## Compatiblity
 This mod is **not** compatible with any mods that make changes to the Terrain Brush tool, nor 
