@@ -20,7 +20,7 @@ enum VERBOSITY {
     ERROR
 }
 
-const DEBUG_MODE = VERBOSITY.INFO
+const DEBUG_MODE = VERBOSITY.WARN
 
 func init_globals():
     # WARNING: Call at the start of script and ONLY ONCE
