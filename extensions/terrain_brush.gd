@@ -66,7 +66,7 @@ func start():
     terrain_brush.Align.move_child(new_button, 6)
 
     var del_button = terrain_brush.CreateButton("Delete Biome", Global.Root + "icons/trash-can.png")
-    del_button.connect("pressed", self, "delete_biome")
+    del_button.connect("pressed", self, "del_biome")
     terrain_brush.Align.move_child(del_button, 7)
 
     var save_button = terrain_brush.CreateButton("Save Biomes", Global.Root + "icons/save.png")
@@ -141,7 +141,7 @@ func load_biomes() -> int:
     var line = file.get_as_text()
     biomes = JSON.parse(line).result
     file.close()
-    
+
     if not biomes:
         log_err("Failed to load preset " + BIOMES_PATH + ", file is either missing or corrupted")
         init_biomes()
@@ -172,7 +172,7 @@ func set_biome(index):
     log_info("Setting biome to " + biomes.keys()[index])
     # TODO: How do I get the dropdown to switch in code??? For some reason
     # this doesn't work... even after calling update???
-    # Interesting this function still works if called from the signal... 😠
+    # Interestingly this function still works if called from the signal... 😠
     biome_dropdown.select(index)
     biome_dropdown.update()
 
