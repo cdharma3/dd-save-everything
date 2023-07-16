@@ -136,18 +136,16 @@ func load_biomes() -> int:
     log_info("Loading biomes...")
 
     # Populate biomes
-    var file = File.new()
-    if not file.file_exists(BIOMES_PATH):
-        init_biomes()
-    
-    file.open(BIOMES_PATH, File.WRITE_READ)
+    var file = File.new()   
+    file.open(BIOMES_PATH, File.READ)
     var line = file.get_as_text()
     biomes = JSON.parse(line).result
+    file.close()
+    
     if not biomes:
         log_err("Failed to load preset " + BIOMES_PATH + ", file is either missing or corrupted")
         init_biomes()
 
-    file.close()
 
     # Override biome dropdown to link into script
     update_biomes()
