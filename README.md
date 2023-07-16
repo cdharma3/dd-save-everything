@@ -4,8 +4,6 @@ Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the
 # Demo
 https://github.com/cdharma3/terrain-presets/assets/42819852/4c904cbd-3008-447b-a40e-d3e5788c678b
 
--
-
 ## Features
 ### Completed
 - Customizable biomes
