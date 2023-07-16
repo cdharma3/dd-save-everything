@@ -102,6 +102,7 @@ func add_biome(biome_window):
         return 
 
     log_info("Adding new biome " + biome_name)
+    # Setting default textures to dirt for now...
     biomes[biome_name] = [
         "res://textures/terrain/terrain_dirt.png", 
         "res://textures/terrain/terrain_dirt.png", 
@@ -202,11 +203,13 @@ func parse_resource_name(resource) -> String:
     return resource.resource_path.split("/")[-1].split(".")[0].capitalize()
 
 func popup_terrain_window(index):
-    ## HACK: Wrapper function around the open terrain window buttons
-    ## Currently it seems like the TerrainWindow is not properly emitting
-    ## the popup_hide signal. 
-    ## Thus this wrapper forces the window to 'Open' briefly, 
-    ## hides it immediately, then popup immediately after to force the signal to trigger
+    # HACK: Wrapper function around the open terrain window buttons
+    # Currently it seems like the TerrainWindow is not properly emitting
+    # the popup_hide signal. I could just call popup directly, but 
+    # investigation reveals that the window is doing some background stuff
+    # to set the grid menu thing...
+    # Thus this wrapper forces the window to 'Open' briefly, 
+    # hides it immediately, then popup immediately after to force the signal to trigger
     var terrain_window = Global.Editor.TerrainWindow
     terrain_window.Open(index)
     terrain_window.hide()
