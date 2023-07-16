@@ -3,18 +3,18 @@ Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the
 
 ## Features
 ### Completed
-Customizable biomes
-Add new biomes
-Remove biomes
-Export to custom preset file
+- Customizable biomes
+- Add new biomes
+- Remove biomes
+- Export to custom preset file
 
 ### In-progress
-Renamable biomes
-Import preset file
+- Renamable biomes
+- Import preset file
 
 ### Planned
-Custom preset files
-8 terrain slot support
+- Custom preset files
+- 8 terrain slot support
 
 
 ## Installation
