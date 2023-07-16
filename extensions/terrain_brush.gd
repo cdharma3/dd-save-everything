@@ -10,7 +10,20 @@ var biome_dropdown
 # TODO: Add support for multiple biome presets in the future
 const BIOMES_PATH: String = "user://preset1.dungeondraft_biomes"
 
+# Script verbosity mode:
+# INFO = All logging messages printed
+# WARN = Only warnings and above are printed
+# ERROR = Only errors are printed
+enum VERBOSITY {
+    INFO,
+    WARN,
+    ERROR
+}
+
+const DEBUG_MODE = VERBOSITY.INFO
+
 func init_globals():
+    # WARNING: Call at the start of script and ONLY ONCE
     terrain_brush = Global.Editor.Toolset.ToolPanels["TerrainBrush"]
     # TODO: Replace magic numbers in get_child with proper node ids
     terrain_list = terrain_brush.Align.get_child(7).get_child(0)
@@ -23,6 +36,8 @@ var biomes: Dictionary
 
 # Script entry point
 func start():
+    log_info("Loading terrain presets...")
+
     # Initialize global variables, must be called before any other functions!
     init_globals()
 
@@ -46,18 +61,23 @@ func start():
         log_err("Some sort of error when loading biomes!")
 
     # Setup terrain preset buttons
-    var new_button = terrain_brush.CreateButton("New Biome", Global.Root + "icons/add.png")
+    var new_button = terrain_brush.CreateButton("New Biome", Global.Root + "icons/new-shoot.png")
     new_button.connect("pressed", self, "new_biome_window")
     terrain_brush.Align.move_child(new_button, 6)
 
-    var save_button = terrain_brush.CreateButton("Save Biomes", "res://ui/icons/menu/save.png")
+    var del_button = terrain_brush.CreateButton("Delete Biome", Global.Root + "icons/trash-can.png")
+    del_button.connect("pressed", self, "delete_biome")
+    terrain_brush.Align.move_child(del_button, 7)
+
+    var save_button = terrain_brush.CreateButton("Save Biomes", Global.Root + "icons/save.png")
     save_button.connect("pressed", self, "save_biomes")
     save_button.hint_tooltip = "WARNING: This will overwrite your current preset file"
-    terrain_brush.Align.move_child(save_button, 7)
+    terrain_brush.Align.move_child(save_button, 8)
 
-    var load_button = terrain_brush.CreateButton("Reload Biomes", "res://ui/icons/menu/redo.png")
+    var load_button = terrain_brush.CreateButton("Reload Biomes", Global.Root + "icons/load.png")
     load_button.connect("pressed", self, "load_biomes")
-    terrain_brush.Align.move_child(load_button, 8)
+    terrain_brush.Align.move_child(load_button, 9)
+
 
     var biome_window = load(Global.Root + "scenes/NewBiomeWindow.tscn").instance()
     biome_window.name = "NewBiomeWindow"
@@ -90,7 +110,19 @@ func add_biome(biome_window):
     ]
 
     update_biomes()
-    set_biome(-1)
+    # TODO: How do I get the dropdown to automatically switch???
+    set_biome(0)
+
+func del_biome():
+    # Get currently selected biome
+    var cur_biome = biomes.keys()[biome_dropdown.selected]
+
+    # Remove biome from biomes dict
+    if not biomes.erase(cur_biome):
+        log_warn("Biome " + cur_biome + " not found in biomes!")
+
+    update_biomes()
+    set_biome(0)    
 
 func save_biomes():
     # TODO: Allow user to save to file
@@ -106,7 +138,7 @@ func save_biomes():
     file.close()
 
 func load_biomes() -> int:
-    log_info("Loading terrain presets...")
+    log_info("Loading biomes...")
 
     # Populate biomes
     var file = File.new()
@@ -125,7 +157,7 @@ func load_biomes() -> int:
     return 0
 
 func update_biomes():
-    log_info("Loading biomes...")
+    log_info("Updating biomes...")
     biome_dropdown.clear()
     for biome in biomes.keys():
         biome_dropdown.add_item(biome)
@@ -180,12 +212,14 @@ func popup_terrain_window(index):
     terrain_window.hide()
     terrain_window.popup()
 
-# Logging utilities
+# Logging utilities, adjusted based on verbosity of script
 func log_info(msg):
-    print("[terrain-presets] INFO: " + msg)
+    if DEBUG_MODE != VERBOSITY.WARN and DEBUG_MODE != VERBOSITY.ERROR:
+        print("[terrain-presets] INFO: " + msg)
 
 func log_warn(msg):
-    print("[terrain-presets] WARN: " + msg)
+    if DEBUG_MODE != VERBOSITY.ERROR:
+        print("[terrain-presets] WARN: " + msg)
 
 func log_err(msg):
     print("[terrain-presets] ERR: " + msg)
