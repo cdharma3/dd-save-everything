@@ -110,7 +110,6 @@ func add_biome(biome_window):
     ]
 
     update_biomes()
-    # TODO: How do I get the dropdown to automatically switch???
     set_biome(0)
 
 func del_biome():
@@ -125,8 +124,6 @@ func del_biome():
     set_biome(0)    
 
 func save_biomes():
-    # TODO: Allow user to save to file
-
     # Sync current biome first 
     sync_biome()
 
@@ -164,6 +161,9 @@ func update_biomes():
 
 func set_biome(index):
     log_info("Setting biome to " + biomes.keys()[index])
+    # TODO: How do I get the dropdown to switch in code??? For some reason
+    # this doesn't work... even after calling update???
+    # Interesting this function still works if called from the signal... 😠
     biome_dropdown.select(index)
     biome_dropdown.update()
 
