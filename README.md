@@ -1,6 +1,9 @@
 # Terrain Presets
 Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the ability to customize the biomes located in the Terrain Brush tool.
 
+# Demo
+https://github.com/cdharma3/terrain-presets/assets/42819852/4c904cbd-3008-447b-a40e-d3e5788c678b
+
 ## Features
 ### Completed
 - Customizable biomes
@@ -18,7 +21,8 @@ Terrain Presets is a [Dungeondraft](https://dungeondraft.net/) mod that adds the
 
 
 ## Installation
-Download this repository, click the mods button in Dungeondraft and point it at this repo.
+[Latest Release](https://github.com/octo-org/octo-repo/releases/latest)
+Download the latest release, click the mods button in Dungeondraft and point it at this repo.
 
 ## Compatiblity
 This mod is **not** compatible with any mods that make changes to the Terrain Brush tool, nor 
