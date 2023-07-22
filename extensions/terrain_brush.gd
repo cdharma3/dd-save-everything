@@ -9,6 +9,7 @@ var biome_dropdown
 # Script constants
 # TODO: Add support for multiple biome presets in the future
 const BIOMES_PATH: String = "user://preset1.dungeondraft_biomes"
+const DEFAULT_BIOMES: String = "res://data/default.dungeondraft_biomes"
 
 # Script verbosity mode:
 # INFO = All logging messages printed
@@ -102,6 +103,7 @@ func add_biome(biome_window):
         return 
 
     log_info("Adding new biome " + biome_name)
+
     # Setting default textures to dirt for now...
     biomes[biome_name] = [
         "res://textures/terrain/terrain_dirt.png", 
@@ -114,6 +116,11 @@ func add_biome(biome_window):
     set_biome(0)
 
 func del_biome():
+    # If biome is the last biome in the dict, lets not delete it eh?
+    if biomes.keys().size() <= 1:
+        log_warn("Must have at least 1 biome!")
+        return
+        
     # Get currently selected biome
     var cur_biome = biomes.keys()[biome_dropdown.selected]
 
@@ -143,24 +150,18 @@ func load_biomes() -> int:
     file.close()
 
     if not biomes:
-        log_err("Failed to load preset " + BIOMES_PATH + ", file is either missing or corrupted")
-        init_biomes()
-
+        log_warn("Failed to load preset " + BIOMES_PATH + ", file is either missing or corrupted")
+        log_info("Initializing default biomes preset at " + DEFAULT_BIOMES)
+        file.open(DEFAULT_BIOMES, File.READ)
+        line = file.get_as_text()
+        biomes = JSON.parse(line).result
+        file.close()
+        save_biomes()
 
     # Override biome dropdown to link into script
     update_biomes()
     set_biome(0)
-    return 0
-
-func init_biomes():
-    log_info("Initializing default biomes preset at " + BIOMES_PATH)
-    biomes = {"Default": [
-            "res://textures/terrain/terrain_dirt.png", 
-            "res://textures/terrain/terrain_dirt.png", 
-            "res://textures/terrain/terrain_dirt.png", 
-            "res://textures/terrain/terrain_dirt.png"
-        ]}
-    save_biomes()
+    return 0 
 
 func update_biomes():
     log_info("Updating biomes...")
