@@ -42,7 +42,11 @@ func start():
     # Initialize global variables, must be called before any other functions!
     init_globals()
 
-    # Override signals
+    # HACK: Override the normal biome_dropdown signal here. Currently it is 
+    # not possible to interact in any meaningful way with the in-built biome
+    # dictionary, as it is not a generic dictionary. As such, when choosing 
+    # a new biome, the normal biome dictionary is ignored, and the local
+    # one replaces it.
     var conns = biome_dropdown.get_signal_connection_list("item_selected")
     biome_dropdown.disconnect("item_selected", conns[0].target, conns[0].method)
     biome_dropdown.connect("item_selected", self, "set_biome")
@@ -52,8 +56,10 @@ func start():
         terrain_buttons[i].disconnect("pressed", conns[0].target, conns[0].method)
         terrain_buttons[i].connect("pressed", self, "popup_terrain_window", [i])
 
-    # HACK: Disconnecting undefined method from 'about_to_show' signal
+    # HACK: Disconnecting undefined method from 'about_to_show' signal, this 
+    # was throwing an error message, and I'm not entirely sure why :/
     Global.Editor.TerrainWindow.disconnect("about_to_show", Global.Editor.TerrainWindow, "_on_TerrainWindow_about_to_show")
+    
     Global.Editor.TerrainWindow.connect("popup_hide", self, "sync_biome")
 
     # Load biomes into biomes dictionary, then override
@@ -61,6 +67,7 @@ func start():
     if load_biomes() != 0:
         log_err("Some sort of error when loading biomes!")
 
+    # TODO (🤔): Maybe move this into its own function 
     # Setup terrain preset buttons
     var new_button = terrain_brush.CreateButton("New Biome", Global.Root + "icons/new-shoot.png")
     new_button.connect("pressed", self, "new_biome_window")
@@ -79,24 +86,21 @@ func start():
     load_button.connect("pressed", self, "load_biomes")
     terrain_brush.Align.move_child(load_button, 9)
 
-
+    # TODO: New function?
+    # Add popups and windows
     var biome_window = load(Global.Root + "scenes/NewBiomeWindow.tscn").instance()
     biome_window.name = "NewBiomeWindow"
     biome_window.get_node("Margins/VAlign/Buttons/OkayButton").connect("pressed", self, "add_biome", [biome_window])
     Global.Editor.get_node("Windows").add_child(biome_window, true)
     
-# Utilities
-func new_biome_window():
-    # Popup new biome dialog
-    var biome_menu =  Global.Editor.get_node("Windows/NewBiomeWindow")
-    biome_menu.popup_centered()
     
+# Utilities    
 func add_biome(biome_window):
     # Hide popup
     biome_window.hide()
 
     # Add new biome to biomes dictionary
-    # TODO: Add warning dialog if overwriting existing biome
+    # TODO: Add warning dialog if overwriting existing biome save
     var biome_name = biome_window.get_node("Margins/VAlign/Label/LabelLineEdit").text
     if not biome_name:
         log_warn("Invalid or empty biome name!")
@@ -129,15 +133,27 @@ func del_biome():
         log_warn("Biome " + cur_biome + " not found in biomes!")
 
     update_biomes()
-    set_biome(0)    
+    set_biome(0)
 
 func save_biomes():
     # Save current biomes state to preset file
+    var save_confirm = Global.Editor.get_node("Windows/Confirm")
+    save_confirm.dialog_text = "WARNING: This will overwrite your current biome preset, are you sure?"
+    if (!save_confirm.get_ok().is_connected("pressed", self, "_save_confirmed")):
+        save_confirm.get_ok().connect("pressed", self, "_save_confirmed")
+        save_confirm.get_cancel().connect("pressed", self, "_save_cancelled")
+    save_confirm.popup_centered_clamped()
+    
+
+func _save_confirmed():
     log_info("Saving file " + BIOMES_PATH + "...")
     var file = File.new()
     file.open(BIOMES_PATH, File.WRITE)
     file.store_line(JSON.print(biomes, "\t"))
     file.close()
+
+func _save_cancelled():
+    log_info("Save cancelled")
 
 func load_biomes() -> int:
     log_info("Loading biomes...")
@@ -170,20 +186,28 @@ func update_biomes():
         biome_dropdown.add_item(biome)
 
 func set_biome(index):
-    log_info("Setting biome to " + biomes.keys()[index])
+    var biome_name = biomes.keys()[index]
+    log_info("Setting biome to " + biome_name)
     # TODO: How do I get the dropdown to switch in code??? For some reason
     # this doesn't work... even after calling update???
     # Interestingly this function still works if called from the signal... 😠
     biome_dropdown.select(index)
     biome_dropdown.update()
-
-    var textures = biomes[biomes.keys()[index]]
+    
+    var textures = biomes[biome_name]
+    var clean = true
     for i in range(0, len(textures)):
         var texture = load_texture(textures[i])
         if texture:
             Global.World.Level.Terrain.SetTexture(texture, i)
             terrain_list.set_item_icon(i, texture)
             terrain_list.set_item_text(i, parse_resource_name(texture))
+        else:
+            clean = false
+    if not clean:
+        popup_accept("Alert!", "Some kind of error when attempting to load biome " + biome_name 
+        + ".\nPlease check that all asset packs are properly loaded!")
+
 
 func sync_biome():
     ## Sync currently set biome with terrain list
@@ -194,6 +218,10 @@ func sync_biome():
         biomes[cur_biome][i] = Global.World.Level.Terrain.GetTexture(i).resource_path    
 
 func load_texture(texture_path):
+    # TODO: Detect if the asset pack is loaded or not before deciding
+    # to load the terrain. The current behavior is that the texture 
+    # will be loaded whether the pack is loaded or not. This is
+    # unexpected behavior
     log_info("Loading texture " + texture_path)
     if ResourceLoader.exists(texture_path):
         return ResourceLoader.load(texture_path)
@@ -211,6 +239,12 @@ func load_texture(texture_path):
 func parse_resource_name(resource) -> String:
     return resource.resource_path.split("/")[-1].split(".")[0].capitalize()
 
+# Popups and windows
+func new_biome_window():
+    # Popup new biome dialog
+    var biome_menu =  Global.Editor.get_node("Windows/NewBiomeWindow")
+    biome_menu.popup_centered()
+
 func popup_terrain_window(index):
     # HACK: Wrapper function around the open terrain window buttons
     # Currently it seems like the TerrainWindow is not properly emitting
@@ -223,6 +257,12 @@ func popup_terrain_window(index):
     terrain_window.Open(index)
     terrain_window.hide()
     terrain_window.popup()
+
+func popup_accept(title, msg):
+    var accept_dialog = Global.Editor.get_node("Window/Accept")
+    accept_dialog.window_title = title
+    accept_dialog.dialog_text = msg
+    accept_dialog.popup_centered_clamped()
 
 # Logging utilities, adjusted based on verbosity of script
 func log_info(msg):
