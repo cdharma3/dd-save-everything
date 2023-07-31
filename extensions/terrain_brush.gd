@@ -104,7 +104,7 @@ func add_biome(biome_window):
     var biome_name = biome_window.get_node("Margins/VAlign/Label/LabelLineEdit").text
     if not biome_name or len(biome_name) <= 0:
         log_warn("Invalid or empty biome name!")
-        popup_accept("Warning!", "Invalid or empty biome name!")
+        Editor.Warn("Warning!", "Invalid or empty biome name!")
         return 
 
     log_info("Adding new biome " + biome_name)
@@ -124,7 +124,7 @@ func del_biome():
     # If biome is the last biome in the dict, lets not delete it eh?
     if biomes.keys().size() <= 1:
         log_warn("Must have at least 1 biome!")
-        popup_accept("Warning!", "Must have at least 1 biome!")
+        Editor.Warn("Warning!", "Must have at least 1 biome!")
         return
         
     # Get currently selected biome
@@ -139,6 +139,7 @@ func del_biome():
 
 func save_biomes():
     # Save current biomes state to preset file
+    # HACK: Slight hack, guessing this is the proper confirm node?
     var save_confirm = Global.Editor.get_node("Windows/Confirm")
     save_confirm.dialog_text = "WARNING: This will overwrite your current biome preset, are you sure?"
     if (!save_confirm.get_ok().is_connected("pressed", self, "_save_confirmed")):
@@ -197,6 +198,7 @@ func set_biome(index):
     biome_dropdown.update()
     
     var textures = biomes[biome_name]
+    # Only pop up accept dialog once
     var clean = true
     for i in range(0, len(textures)):
         var texture = load_texture(textures[i])
@@ -207,7 +209,7 @@ func set_biome(index):
         else:
             clean = false
     if not clean:
-        popup_accept("Alert!", "Some kind of error when attempting to load biome " + biome_name 
+        Editor.Warn("Alert!", "Some kind of error when attempting to load biome " + biome_name 
         + ".\nPlease check that all asset packs are properly loaded!")
 
 
@@ -223,7 +225,7 @@ func load_texture(texture_path):
     # TODO: Detect if the asset pack is loaded or not before deciding
     # to load the terrain. The current behavior is that the texture 
     # will be loaded whether the pack is loaded or not. This is
-    # unexpected behavior
+    # unexpected behavior, and can lead to some frustrating debugging
     log_info("Loading texture " + texture_path)
     if ResourceLoader.exists(texture_path):
         return ResourceLoader.load(texture_path)
@@ -259,14 +261,6 @@ func popup_terrain_window(index):
     terrain_window.Open(index)
     terrain_window.hide()
     terrain_window.popup()
-
-func popup_accept(title, msg):
-    # HACK: As far as I can tell, this is the default 'accept' window
-    # used by DD, so in an effort to not have to add a new one, here we are
-    var accept_dialog = Global.Editor.get_node("Windows/Accept")
-    accept_dialog.window_title = title
-    accept_dialog.dialog_text = msg
-    accept_dialog.popup_centered_clamped()
 
 # Logging utilities, adjusted based on verbosity of script
 func log_info(msg):
