@@ -102,8 +102,9 @@ func add_biome(biome_window):
     # Add new biome to biomes dictionary
     # TODO: Add warning dialog if overwriting existing biome save
     var biome_name = biome_window.get_node("Margins/VAlign/Label/LabelLineEdit").text
-    if not biome_name:
+    if not biome_name or len(biome_name) <= 0:
         log_warn("Invalid or empty biome name!")
+        popup_accept("Warning!", "Invalid or empty biome name!")
         return 
 
     log_info("Adding new biome " + biome_name)
@@ -123,6 +124,7 @@ func del_biome():
     # If biome is the last biome in the dict, lets not delete it eh?
     if biomes.keys().size() <= 1:
         log_warn("Must have at least 1 biome!")
+        popup_accept("Warning!", "Must have at least 1 biome!")
         return
         
     # Get currently selected biome
@@ -259,7 +261,9 @@ func popup_terrain_window(index):
     terrain_window.popup()
 
 func popup_accept(title, msg):
-    var accept_dialog = Global.Editor.get_node("Window/Accept")
+    # HACK: As far as I can tell, this is the default 'accept' window
+    # used by DD, so in an effort to not have to add a new one, here we are
+    var accept_dialog = Global.Editor.get_node("Windows/Accept")
     accept_dialog.window_title = title
     accept_dialog.dialog_text = msg
     accept_dialog.popup_centered_clamped()
