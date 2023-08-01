@@ -1,7 +1,7 @@
 {
 	"name": "Terrain Presets",
 	"unique_id": "terrain-presets",
-	"version": "0.1.3",
+	"version": "0.2.1-beta",
 	"author": "cdharma",
 	"description": "Adds the ability to customize and store terrain brush biome presets",
 	"dd_version": "1.1.0.0",
