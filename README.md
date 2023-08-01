@@ -24,6 +24,6 @@ https://github.com/cdharma3/terrain-presets/assets/42819852/4c904cbd-3008-447b-a
 [Latest Release](https://github.com/octo-org/octo-repo/releases/latest)
 Download the latest release, click the mods button in Dungeondraft and point it at this repo.
 
-## Compatiblity
+## Compatibility
 This mod is **not** compatible with any mods that make changes to the Terrain Brush tool, nor 
 any changes to how Terrain is loaded / set.
