@@ -10,9 +10,9 @@ https://github.com/cdharma3/terrain-presets/assets/42819852/4c904cbd-3008-447b-a
 - Add new biomes
 - Remove biomes
 - Export to custom preset file
+- Renamable biomes
 
 ### In-progress
-- Renamable biomes
 - Import preset file
 
 ### Planned
