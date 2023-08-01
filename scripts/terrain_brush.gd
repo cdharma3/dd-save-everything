@@ -250,13 +250,15 @@ func expand(value):
 
     # TODO: Is there a better way to do this?
     # Currently just getting the newly created buttons, then overriding them
-    terrain_buttons = terrain_brush.Align.get_child(7).get_child(1).get_children()
+    # Notably this is 11 as it is after the terrain brush buttons are added
+    terrain_buttons = terrain_brush.Align.get_child(11).get_child(1).get_children()
     for i in range(0, len(terrain_buttons)):
         var conns = terrain_buttons[i].get_signal_connection_list("pressed")
         terrain_buttons[i].disconnect("pressed", conns[0].target, conns[0].method)
         terrain_buttons[i].connect("pressed", self, "popup_terrain_window", [i])
 
     set_biome(biome_dropdown.selected)
+    sync_biome()
 
 func set_biome(index):
     var biome_name = biome_dropdown.get_item_text(index)
