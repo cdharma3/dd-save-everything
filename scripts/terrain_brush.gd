@@ -20,7 +20,7 @@ enum VERBOSITY {
     ERROR
 }
 
-const DEBUG_MODE = VERBOSITY.INFO
+const DEBUG_MODE = VERBOSITY.WARN
 
 # Predefined Globals
 var terrain_brush
